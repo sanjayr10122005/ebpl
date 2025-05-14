@@ -1,0 +1,41 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report
+import joblib
+
+# Step 1: Load dataset
+url = 'https://storage.googleapis.com/download.tensorflow.org/data/creditcard.csv'
+print("Loading data...")
+df = pd.read_csv(url)
+
+# Step 2: Prepare data
+X = df.drop('Class', axis=1)  # Features
+y = df['Class']               # Labels (0 = Legit, 1 = Fraud)
+
+# Step 3: Scale features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Step 4: Split dataset
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+
+# Step 5: Train model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Step 6: Evaluate model
+y_pred = model.predict(X_test)
+print("Model Evaluation:\n")
+print(classification_report(y_test, y_pred))
+
+# Step 7: Save model and scaler
+joblib.dump(model, 'fraud_model.pkl')
+joblib.dump(scaler, 'scaler.pkl')
+print("Model and scaler saved.")
+
+# Step 8: Make a prediction with a sample input (from test set)
+sample = X_test[0].reshape(1, -1)
+prediction = model.predict(sample)
+print("\nSample Prediction:", "Fraud" if prediction[0] == 1 else "Legit")
